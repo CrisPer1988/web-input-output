@@ -8,9 +8,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 export default function Home() {
+  const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(null);
   const [endDate, setEndDate] = useState(null);
   const [data, setData] = useState(null);
+
   const handleSubmit = () => {
     const requestData = {};
     if (startDate) requestData.from = startDate.toISOString().split("T")[0]; // Formato 'YYYY-MM-DD'
@@ -25,6 +27,24 @@ export default function Home() {
       .catch((error) => {
         console.error(error);
       });
+  };
+
+  const handleDelete = async (id) => {
+    const isConfirm = confirm(`Seguro que deseas eliminar?`);
+
+    if (isConfirm) {
+      setLoading(true);
+
+      try {
+        const response = await axios.delete(`${baseUrl}/cash/${id}`);
+        console.log(response.data);
+      } catch (error) {
+        console.error(error);
+      } finally {
+        handleSubmit();
+        setLoading(false); // Desactivar el loading al finalizar
+      }
+    }
   };
 
   return (
@@ -110,9 +130,15 @@ export default function Home() {
                 .filter((d) => d.type === "input")
                 .map((d) => (
                   <div
-                    className="bg-green-500 mt-4 p-2 rounded-lg text-white"
+                    className="bg-green-500 mt-4 p-2 rounded-lg text-white flex flex-col"
                     key={d.id}
                   >
+                    <button
+                      className="self-end"
+                      onClick={() => handleDelete(d.id)}
+                    >
+                      X
+                    </button>
                     <p>Fecha: {d.createdAt.slice(0, 8)}</p>
                     <p>Descripcion: {d.description}</p>
                     <p>Tipo: Entrada</p>
@@ -127,9 +153,15 @@ export default function Home() {
                 .filter((d) => d.type === "output")
                 .map((d) => (
                   <div
-                    className="bg-red-500 mt-4 p-2 rounded-lg text-white"
+                    className="bg-red-500 flex flex-col mt-4 p-2 rounded-lg text-white"
                     key={d.id}
                   >
+                    <button
+                      className="self-end"
+                      onClick={() => handleDelete(d.id)}
+                    >
+                      X
+                    </button>
                     <p>Fecha: {d.createdAt.slice(0, 8)}</p>
                     <p>Descripcion: {d.description}</p>
                     <p>Tipo: Salida</p>
